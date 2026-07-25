@@ -7,8 +7,158 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
 </head>
 <body>
-    <h1>Hello Ilham!</h1>
+    <h1>Undangan</h1>
+    <p>Kepada Yth. <span id="recipientname">Nama Tamu.</span></p>
+    <p>Assalamu'alaikum warahmatuLlahi wabarakatuh.</p>
+    <p>Mengundang antum untuk hadir dalam acara pernikahan Ilham.</p>
+    <p>Waktu: tanggal sekian.</p>
+    <p>Tempat: di sana.</p>
+    <h1>Ucapan</h1>
+    <form id="commentform">
+        <label for="commentname">Nama:</label>
+        <input type="text" name="name" id="commentname" required>
+        <label for="commentmessage">Ucapan:</label>
+        <textarea name="message" id="commentmessage" rows="3" required></textarea>
+        <button type="submit" id="commentsubmit">Kirim</button>
+        <span id="commentsubmittingtext" style="display: none;">Mengirim...</span>
+    </form>
+    <div class="p-2"></div>
+    <div id="comments">
+        <div class="p-2 mt-2 border">
+            <div>Nama: Ya</div>
+            <div>Pesan: Ha</div>
+            <div>Dikirim: 25 Juli 2026, 12:30 WIB</div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <script type="module">
+        // ====== Start of Firebase Config ======
+
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-analytics.js";
+        import {
+            getFirestore,
+            collection,
+            addDoc,
+            serverTimestamp,
+            query,
+            orderBy,
+            getDocs
+        } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+            apiKey: "AIzaSyC3iFnur8IjWNJm3LW70ydjdCFaESXV39E",
+            authDomain: "ilhamwedding-60180.firebaseapp.com",
+            projectId: "ilhamwedding-60180",
+            storageBucket: "ilhamwedding-60180.firebasestorage.app",
+            messagingSenderId: "786635566612",
+            appId: "1:786635566612:web:333171e097c624667d4101",
+            measurementId: "G-3XJGYLFLK0"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+
+        // ====== End of Firebase Config ======
+
+        let urlParams = new URLSearchParams(document.location.search);
+        let recipientName = urlParams.get("untuk");
+        if (recipientName) {
+            document.getElementById("recipientname").innerText = recipientName;
+        }
+
+        const commentForm = document.getElementById("commentform");
+
+        commentForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            console.log(data);
+
+            const submitButton = document.getElementById("commentsubmit");
+            const submitingText = document.getElementById("commentsubmittingtext");
+
+            submitButton.disabled = true;
+            submitingText.style.display = "inline";
+
+            try {
+                const docRef = await addDoc(collection(db, "comments"), {
+                    name: data.name,
+                    message: data.message,
+                    timestamp: serverTimestamp(),
+                });
+
+                alert("Terima kasih");
+                commentForm.reset();
+                refreshComments();
+            }
+            catch (error) {
+                console.error("Error saving comment: ", error);
+                alert("Aduh, error.");
+            }
+            finally {
+                submitButton.disabled = false;
+                submitingText.style.display = "none";
+            }
+        });
+
+        async function refreshComments() {
+            const commentContainer = document.getElementById("comments");
+
+            commentContainer.innerHTML = "<h1>Mengambil data...</h1>"
+
+            try {
+                const q = query(collection(db, "comments"), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    commentContainer.innerHTML = "<h1>Kosong :(</h1>";
+                    return
+                }
+
+                querySnapshot.forEach((doc) => {
+                    const comment = doc.data();
+                    const dateStr = comment.timestamp ? comment.timestamp.toDate().toLocaleDateString() : "";
+
+                    const commentMarkup = `
+                        <div class="p-2 mt-2 border">
+                            <div>Nama: ${escapeHtml(comment.name)}</div>
+                            <div>Pesan: ${escapeHtml(comment.message)}</div>
+                            <div>Dikirim: ${dateStr}</div>
+                        </div>
+                    `;
+
+                    commentContainer.innerHTML += commentMarkup
+                })
+            }
+            catch (error) {
+                console.error("Error refreshing comments: ", error);
+                commentContainer.innerHTML = "<h1>Aduh Error.</h1>"
+            }
+        }
+
+        refreshComments();
+
+        function escapeHtml(unsafeString) {
+            const htmlEntities = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;',
+                '/': '&#x2F;'
+            };
+            return unsafeString.replace(/[&<>"'/]/g, match => htmlEntities[match]);
+        }
+    </script>
 </body>
 </html>
