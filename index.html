@@ -120,6 +120,8 @@
                 const q = query(collection(db, "comments"), orderBy("timestamp", "desc"));
                 const querySnapshot = await getDocs(q);
 
+                commentContainer.innerHTML = "";
+
                 if (querySnapshot.empty) {
                     commentContainer.innerHTML = "<h1>Kosong :(</h1>";
                     return
