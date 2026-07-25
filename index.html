@@ -5,8 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ilham Nikah</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <style>
+        #musicplayercontainer {
+            position: relative;
+            width: 100%;
+            padding-bottom: 100%;
+            height: 0;
+        }
+        #musicplayercontainer iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
 </head>
-<body>
+<body style="overflow: hidden;">
     <h1>Undangan</h1>
     <p>Kepada Yth. <span id="recipientname">Nama Tamu.</span></p>
     <p>Assalamu'alaikum warahmatuLlahi wabarakatuh.</p>
@@ -29,6 +44,17 @@
             <div>Pesan: Ha</div>
             <div>Dikirim: 25 Juli 2026, 12:30 WIB</div>
         </div>
+    </div>
+
+    <div class="w-100">
+        <div id="musicplayercontainer">
+            <div id="musicplayer"></div>
+        </div>
+    </div>
+
+    <div id="envelope" class="position-fixed top-0 start-0 bottom-0 end-0 flex-column justify-content-center align-items-center bg-white" style="display: flex;">
+        <h1>Hello</h1>
+        <button id="envelopebtn">Buka Undangan</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
@@ -153,6 +179,65 @@
             };
             return unsafeString.replace(/[&<>"'/]/g, match => htmlEntities[match]);
         }
+
+        // ====== Start of YouTube iframe setup ======
+
+        (() => {
+            let tag = document.createElement("script");
+            tag.src = "https://www.youtube.com/iframe_api";
+            let firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        })();
+        
+        let musicPlayer;
+        window.onYouTubeIframeAPIReady = function () {
+            console.log("AAAAAAAAAAA");
+            musicPlayer = new YT.Player("musicplayer", {
+                height: "100%",
+                width: "100%",
+                videoId: "2E_qlyy5N-I",
+                playerVars: {
+                    "playsinline": 1,
+                    "controls": 0,
+                    "loop": 1,
+                    "disablekb": 1,
+                    "fs": 0,
+                    "iv_load_policy": 3,
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange,
+                },
+            })
+        }
+
+        function onPlayerReady() {
+            console.log("Player ready.");
+        }
+
+        function onPlayerStateChange() {
+            console.log("Player state changes.");
+        }
+
+        // ====== End of YouTube iframe setup ======
+
+        const envelopeBtn = document.getElementById("envelopebtn");
+        const envelope = document.getElementById("envelope");
+
+        envelopeBtn.addEventListener("click", (e) => {
+            envelope.style.display = "none";
+            document.body.style.overflow = "visible";
+            musicPlayer.playVideo();
+        });
+
+        document.addEventListener("visibilitychange", () => {
+            console.log("visibility changed");
+            console.log("document.hidden: ", document.hidden);
+            console.log("envelope display: ", window.getComputedStyle(envelope).display);
+            if (document.hidden) return;
+            else if (window.getComputedStyle(envelope).display != "none") return;
+            else musicPlayer.playVideo();
+        });
     </script>
 </body>
 </html>
