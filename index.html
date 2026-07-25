@@ -45,7 +45,7 @@
             serverTimestamp,
             query,
             orderBy,
-            getDocs
+            onSnapshot
         } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
         // TODO: Add SDKs for Firebase products that you want to use
         // https://firebase.google.com/docs/web/setup#available-libraries
@@ -97,9 +97,7 @@
                     timestamp: serverTimestamp(),
                 });
 
-                alert("Terima kasih");
                 commentForm.reset();
-                refreshComments();
             }
             catch (error) {
                 console.error("Error saving comment: ", error);
@@ -111,44 +109,38 @@
             }
         });
 
-        async function refreshComments() {
-            const commentContainer = document.getElementById("comments");
 
-            commentContainer.innerHTML = "<h1>Mengambil data...</h1>"
+        const commentContainer = document.getElementById("comments");
+        const q = query(collection(db, "comments"), orderBy("timestamp", "desc"));
 
-            try {
-                const q = query(collection(db, "comments"), orderBy("timestamp", "desc"));
-                const querySnapshot = await getDocs(q);
+        commentContainer.innerHTML = "<h1>Mengambil data...</h1>";
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            console.log(Date.now());
+            commentContainer.innerHTML = "";
 
-                commentContainer.innerHTML = "";
-
-                if (querySnapshot.empty) {
-                    commentContainer.innerHTML = "<h1>Kosong :(</h1>";
-                    return
-                }
-
-                querySnapshot.forEach((doc) => {
-                    const comment = doc.data();
-                    const dateStr = comment.timestamp ? comment.timestamp.toDate().toLocaleDateString() : "";
-
-                    const commentMarkup = `
-                        <div class="p-2 mt-2 border">
-                            <div>Nama: ${escapeHtml(comment.name)}</div>
-                            <div>Pesan: ${escapeHtml(comment.message)}</div>
-                            <div>Dikirim: ${dateStr}</div>
-                        </div>
-                    `;
-
-                    commentContainer.innerHTML += commentMarkup
-                })
+            if (querySnapshot.empty) {
+                commentContainer.innerHTML = "<h1>Kosong :(</h1>";
+                return;
             }
-            catch (error) {
-                console.error("Error refreshing comments: ", error);
-                commentContainer.innerHTML = "<h1>Aduh Error.</h1>"
-            }
-        }
 
-        refreshComments();
+            querySnapshot.forEach(doc => {
+                const comment = doc.data();
+                const dateStr = comment.timestamp ? comment.timestamp.toDate().toLocaleDateString() : "<i>mengirim...</i>";
+
+                const commentMarkup = `
+                    <div class="p-2 mt-2 border">
+                        <div>Nama: ${escapeHtml(comment.name)}</div>
+                        <div>Pesan: ${escapeHtml(comment.message)}</div>
+                        <div>Dikirim: ${dateStr}</div>
+                    </div>
+                `;
+
+                commentContainer.innerHTML += commentMarkup;
+            }, error => {
+                console.error("Error listening to database: ", error);
+                commentContainer.innerHTML = "<h1>Gagal memuat ucapan</h1>"
+            });
+        });
 
         function escapeHtml(unsafeString) {
             const htmlEntities = {
