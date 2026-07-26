@@ -9,7 +9,7 @@
         #musicplayercontainer {
             position: relative;
             width: 100%;
-            padding-bottom: 100%;
+            padding-bottom: 56.25%;
             height: 0;
         }
         #musicplayercontainer iframe {
@@ -205,13 +205,14 @@
             musicPlayer = new YT.Player("musicplayer", {
                 height: "100%",
                 width: "100%",
-                videoId: "2E_qlyy5N-I",
+                videoId: "FY4Bx2qtkRM",
                 playerVars: {
                     "playsinline": 1,
                     "controls": 0,
                     "disablekb": 1,
                     "fs": 0,
                     "iv_load_policy": 3,
+                    "cc_load_policy": 0,
                 },
                 events: {
                     'onReady': onPlayerReady,
