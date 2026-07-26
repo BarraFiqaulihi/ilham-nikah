@@ -53,8 +53,17 @@
     </div>
 
     <div id="envelope" class="position-fixed top-0 start-0 bottom-0 end-0 flex-column justify-content-center align-items-center bg-white" style="display: flex;">
-        <h1>Hello</h1>
-        <button id="envelopebtn">Buka Undangan</button>
+        <p class="m-0">بسم الله الرحمن الرحيم</p>
+        <p class="m-0 mt-4">Kabar Bahagia</p>
+        <p class="m-0">Ilham & Shafiyyah</p>
+        <p class="m-0">Mohon doa restu</p>
+        <p class="m-0">30 Agustus 2026</p>
+        <img src="./resources/img/ring-wedding-ring.gif" width="100" alt="ring" class="mt-4">
+        <p class="m-0 mt-4">Kepada  Yth.</p>
+        <div class="border border-3 p-2 rounded mt-2">
+            <span id="recipientnameenvelope">Nama Tamu</span>
+        </div>
+        <button id="envelopebtn" type="button" class="btn btn-primary mt-4">Buka Undangan</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
@@ -99,6 +108,7 @@
         let recipientName = urlParams.get("untuk");
         if (recipientName) {
             document.getElementById("recipientname").innerText = recipientName;
+            document.getElementById("recipientnameenvelope").innerText = recipientName;
         }
 
         const commentForm = document.getElementById("commentform");
